@@ -1,5 +1,5 @@
 import asyncio
-
+import aiofiles
 import os
 import sqlite3
 import datetime
@@ -7,14 +7,71 @@ import aiogram
 import asyncpg
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from data.config import ADMINS
+from data.config import ADMINS, DB_HOST, DB_NAME, DB_PASS, DB_USER, DB_PORT
 from keyboards.default.menu import cancel, admin_key
 from keyboards.inline.menu_in import yesno
 from loader import dp, db, bot
 from states.state import Reklama, Forward, Upload
 from xlsxwriter.workbook import Workbook
+from utils.pgtoexcel import export_to_excel
+from sqlalchemy import create_engine
+import pandas as pd
 
-import logging
+
+@dp.message_handler(text="/export", user_id=ADMINS[0], state='*')
+async def export_to_db(message: types.Message, state: FSMContext):
+    engine = create_engine(f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
+    main_adminstg_file_path = "data/main_adminstg.xlsx"
+    main_botmessage_file_path = "data/main_botmessage.xlsx"
+    main_token_file_path = "data/main_token.xlsx"
+    main_user_file_path = "data/main_user.xlsx"
+
+    with pd.ExcelFile(main_user_file_path) as xlsx:
+        df = pd.read_excel(xlsx)
+        df.to_sql(name="main_users", con=engine, if_exists="append", index=False)
+    await message.answer(text="main_user yozildi!")
+
+    with pd.ExcelFile(main_adminstg_file_path) as xlsx:
+        df = pd.read_excel(xlsx)
+        df.to_sql(name="main_adminstg", con=engine, if_exists="append", index=False)
+    await message.answer(text="main_adminstg yozildi!")
+
+    with pd.ExcelFile(main_botmessage_file_path) as xlsx:
+        df = pd.read_excel(xlsx)
+        df.to_sql(name="main_botmessage", con=engine, if_exists="append", index=False)
+    await message.answer(text="main_botmessage yozildi!")
+
+    with pd.ExcelFile(main_token_file_path) as xlsx:
+        df = pd.read_excel(xlsx)
+        df.to_sql(name="main_token", con=engine, if_exists="append", index=False)
+    await message.answer(text="main_token yozildi!")
+
+
+@dp.message_handler(text="/excel", user_id=ADMINS[0], state='*')
+async def get_users_excel(message: types.Message, state: FSMContext):
+    main_adminstg_file_path = "data/main_adminstg.xlsx"
+    main_botmessage_file_path = "data/main_botmessage.xlsx"
+    main_token_file_path = "data/main_token.xlsx"
+    main_user_file_path = "data/main_user.xlsx"
+
+    users = await db.select_all_users()
+    bot_messages = await db.select_all_bot_messages()
+    tokens = await db.select_all_tokens()
+    adminstg = await db.select_all_admins()
+
+    await export_to_excel(data=adminstg, headings=["id", "tg_id", "name"], filepath=main_adminstg_file_path)
+    await export_to_excel(data=bot_messages, headings=["id", "code", "content"], filepath=main_botmessage_file_path)
+    await export_to_excel(data=tokens, headings=["id", "ids", "token", "channel", "contest"], filepath=main_token_file_path)
+    await export_to_excel(data=users, headings=["id", "username", "name", "competition_id", "fullname", "phone", "birth_day", "ref_count", "parent", "lang", "ban"], filepath=main_user_file_path)
+
+    async with aiofiles.open(main_adminstg_file_path, 'rb') as file:
+        await message.answer_document(document=file)
+    async with aiofiles.open(main_botmessage_file_path, 'rb') as file:
+        await message.answer_document(document=file)
+    async with aiofiles.open(main_token_file_path, 'rb') as file:
+        await message.answer_document(document=file)
+    async with aiofiles.open(main_user_file_path, 'rb') as file:
+        await message.answer_document(document=file)
 
 
 @dp.message_handler(text="📊 Статистика", user_id=ADMINS)
@@ -222,3 +279,9 @@ async def sqlite(message: types.Message):
     conn.close()
     os.remove('data/SQLite.db')
 
+
+
+@dp.message_handler(text='cleandb', user_id=ADMINS, state='*')
+async def clean_db(message: types.Message):
+    await db.delete_users()
+    await message.answer(text="Baza tozalandi!")

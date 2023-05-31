@@ -92,6 +92,18 @@ class Database:
     async def select_all_users(self):
         sql = "SELECT * FROM main_user"
         return await self.execute(sql, fetch=True)
+    
+    async def select_all_admins(self):
+        sql = "SELECT * FROM main_adminstg"
+        return await self.execute(sql, fetch=True)
+    
+    async def select_all_bot_messages(self):
+        sql = "SELECT * FROM main_botmessage"
+        return await self.execute(sql, fetch=True)
+    
+    async def select_all_tokens(self):
+        sql = "SELECT * FROM main_token"
+        return await self.execute(sql, fetch=True)
 
     async def select_user(self, **kwargs):
         sql = "SELECT * FROM main_user WHERE "
