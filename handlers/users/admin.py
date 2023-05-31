@@ -284,4 +284,7 @@ async def sqlite(message: types.Message):
 @dp.message_handler(text='cleandb', user_id=ADMINS, state='*')
 async def clean_db(message: types.Message):
     await db.delete_users()
+    await db.delete_admins()
+    await db.delete_botmessages()
+    await db.delete_tokens()
     await message.answer(text="Baza tozalandi!")

@@ -129,6 +129,15 @@ class Database:
 
     async def delete_users(self):
         await self.execute("DELETE FROM main_user WHERE TRUE", execute=True)
+    
+    async def delete_admins(self):
+        await self.execute("DELETE FROM main_adminstg WHERE TRUE", execute=True)
+    
+    async def delete_botmessages(self):
+        await self.execute("DELETE FROM main_botmessage WHERE TRUE", execute=True)
+    
+    async def delete_tokens(self):
+        await self.execute("DELETE FROM main_token WHERE TRUE", execute=True)
 
     async def drop_users(self):
         await self.execute("DROP TABLE main_user", execute=True)
