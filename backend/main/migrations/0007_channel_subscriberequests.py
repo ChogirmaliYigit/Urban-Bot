@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("main", "0005_alter_botmessage_code"),
+        ("main", "0006_adminstg_token_user"),
     ]
 
     operations = [
