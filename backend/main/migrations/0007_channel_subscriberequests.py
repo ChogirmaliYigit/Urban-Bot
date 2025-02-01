@@ -10,58 +10,58 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="Channel",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("chat_id", models.BigIntegerField(verbose_name="ID канала")),
-                (
-                    "name",
-                    models.CharField(max_length=250, verbose_name="Название канала"),
-                ),
-                (
-                    "link",
-                    models.CharField(max_length=250, verbose_name="Ссылка на канал"),
-                ),
-            ],
-            options={
-                "verbose_name": "Канал",
-                "verbose_name_plural": "Каналы",
-            },
-        ),
-        migrations.CreateModel(
-            name="SubscribeRequests",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "user_telegram_id",
-                    models.BigIntegerField(verbose_name="ID Telegram"),
-                ),
-                (
-                    "channel",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="subscribe_requests",
-                        to="main.channel",
-                        verbose_name="Канал",
-                    ),
-                ),
-            ],
-        ),
+        # migrations.CreateModel(
+        #     name="Channel",
+        #     fields=[
+        #         (
+        #             "id",
+        #             models.BigAutoField(
+        #                 auto_created=True,
+        #                 primary_key=True,
+        #                 serialize=False,
+        #                 verbose_name="ID",
+        #             ),
+        #         ),
+        #         ("chat_id", models.BigIntegerField(verbose_name="ID канала")),
+        #         (
+        #             "name",
+        #             models.CharField(max_length=250, verbose_name="Название канала"),
+        #         ),
+        #         (
+        #             "link",
+        #             models.CharField(max_length=250, verbose_name="Ссылка на канал"),
+        #         ),
+        #     ],
+        #     options={
+        #         "verbose_name": "Канал",
+        #         "verbose_name_plural": "Каналы",
+        #     },
+        # ),
+        # migrations.CreateModel(
+        #     name="SubscribeRequests",
+        #     fields=[
+        #         (
+        #             "id",
+        #             models.BigAutoField(
+        #                 auto_created=True,
+        #                 primary_key=True,
+        #                 serialize=False,
+        #                 verbose_name="ID",
+        #             ),
+        #         ),
+        #         (
+        #             "user_telegram_id",
+        #             models.BigIntegerField(verbose_name="ID Telegram"),
+        #         ),
+        #         (
+        #             "channel",
+        #             models.ForeignKey(
+        #                 on_delete=django.db.models.deletion.CASCADE,
+        #                 related_name="subscribe_requests",
+        #                 to="main.channel",
+        #                 verbose_name="Канал",
+        #             ),
+        #         ),
+        #     ],
+        # ),
     ]
