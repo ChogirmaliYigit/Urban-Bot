@@ -13,9 +13,11 @@ class User(models.Model):
     parent = models.BigIntegerField(null=True, verbose_name='ID Пригласителя',blank=True)
     lang = models.CharField(max_length=250, null=True,verbose_name='Язык',blank=True)
     ban = models.BooleanField(default=True,verbose_name='Бан',blank=True)
+
     class Meta:
         verbose_name = 'Пользователя'
         verbose_name_plural = 'Пользователи'
+
 
 class AdminsTG(models.Model):
     tg_id = models.BigIntegerField(verbose_name='ID Telegram')
@@ -24,6 +26,8 @@ class AdminsTG(models.Model):
     class Meta:
         verbose_name = 'Админа'
         verbose_name_plural = 'Администраторы'
+
+
 class Token(models.Model):
     ids = models.IntegerField(default=1, unique=True, editable=False)
     token = models.TextField(verbose_name='Токен бота')
@@ -39,6 +43,7 @@ class BotMessage(models.Model):
     UZ = 'uz'
     RU = 'ru'
     EN = 'en'
+
     LANGUAGES = (
         (UZ, 'Uz'),
         (RU, 'Ru'),
@@ -54,3 +59,18 @@ class BotMessage(models.Model):
     class Meta:
         verbose_name = 'Сообщение бота'
         verbose_name_plural = 'Сообщения бота'
+
+
+class Channel(models.Model):
+    chat_id = models.BigIntegerField(verbose_name="ID канала")
+    name = models.CharField(max_length=250, verbose_name='Название канала')
+    link = models.CharField(max_length=250, verbose_name='Ссылка на канал')
+
+    class Meta:
+        verbose_name = 'Канал'
+        verbose_name_plural = 'Каналы'
+
+
+class SubscribeRequests(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, verbose_name="Канал", related_name="subscribe_requests")
+    user_telegram_id = models.BigIntegerField(verbose_name="ID Telegram")

@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-v0xsz_n@6mz9h5*2p+e^yzxevtez-1xo&usbq-)t*h&%zu^0q7
 
 #ALLOWED_HOSTS = []
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['185.154.14.8', 'localhost', '127.0.0.1']
 _locale._getdefaultlocale = (lambda *args: ['en_US', 'utf8'])
 # Application definition

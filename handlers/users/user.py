@@ -6,73 +6,68 @@ from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeybo
 from aiogram.utils.deep_linking import get_start_link
 from data.config import CHANNELS
 from keyboards.default.menu import contact_uz, contact_ru
-from keyboards.inline.menu import chek, chek_uz
+from keyboards.inline.menu_in import get_channels_markup_user
 from loader import db
-from loader import dp, bot
-from states.state import Lang, UserInfo, Chek
+from loader import dp
+from states.state import Lang, UserInfo
+from utils.misc.subscription import get_user_subscribe_channels
 
 
 @dp.callback_query_handler(state=Lang.select)
 async def select_lang(call: types.CallbackQuery, state: FSMContext):
     await call.message.delete()
     text = call.data
-    channel_name = await bot.get_chat(CHANNELS[0])
-    channelname = (channel_name.active_usernames)
+    lang = await db.show_lang(id=call.from_user.id)
+
+    channels = await db.select_all_channels()
+    channel_ids = {int(CHANNELS[0])}
+    for channel in channels:
+        channel_ids.add(int(channel["chat_id"]))
+
+    subscribe_channels = await get_user_subscribe_channels(channel_ids, call.from_user.id)
+    if subscribe_channels:
+        bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang['lang'] if lang else 'ru'}")
+        await call.message.answer(
+            text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
+            reply_markup=get_channels_markup_user(subscribe_channels)
+        )
+        return
+
     bot_info = await db.bot_info()
     await db.update_lang(lang=text, telegram_id=call.from_user.id)
-    user_channel_status = await bot.get_chat_member(chat_id=f'@{channelname[0]}', user_id=call.from_user.id)
-    if user_channel_status["status"] != 'left':
-        lang = await db.show_lang(id=call.from_user.id)
-        if lang['lang'] == 'uz':
-            bot_msg = await db.select_bot_message(code='select_lang')
-            await call.answer(bot_msg['content'])
-            if bot_info[0]['contest'] == True:
-                bot_msg = await db.select_bot_message(code='select_lang_1')
-                await call.message.answer(bot_msg['content'])
 
-                bot_msg = await db.select_bot_message(code='select_lang_2')
-                await call.message.answer(bot_msg['content'],
-                    reply_markup=contact_uz)
-                await UserInfo.phone.set()
-            else:
-                bot_msg = await db.select_bot_message(code='select_lang_3')
-                await call.message.answer(bot_msg['content'])
-                await state.finish()
+    if lang['lang'] == 'uz':
+        bot_msg = await db.select_bot_message(code='select_lang')
+        await call.answer(bot_msg['content'])
+        if bot_info[0]['contest'] == True:
+            bot_msg = await db.select_bot_message(code='select_lang_1')
+            await call.message.answer(bot_msg['content'])
 
+            bot_msg = await db.select_bot_message(code='select_lang_2')
+            await call.message.answer(bot_msg['content'],
+                reply_markup=contact_uz)
+            await UserInfo.phone.set()
         else:
-            bot_msg = await db.select_bot_message(code='select_lang_4')
-            await call.answer(bot_msg['content'])
-            if bot_info[0]['contest'] == True:
-                bot_msg = await db.select_bot_message(code='select_lang_5')
-                await call.message.answer(bot_msg['content'])
-
-                bot_msg = await db.select_bot_message(code='select_lang_6')
-                await call.message.answer(bot_msg['content'],
-                                          reply_markup=contact_ru)
-                await UserInfo.phone.set()
-
-            else:
-                bot_msg = await db.select_bot_message(code='select_lang_7')
-                await call.message.answer(bot_msg['content'])
-                await state.finish()
+            bot_msg = await db.select_bot_message(code='select_lang_3')
+            await call.message.answer(bot_msg['content'])
+            await state.finish()
 
     else:
-        lang = await db.show_lang(id=call.from_user.id)
-        channel = await bot.get_chat(CHANNELS[0])
-        invite_link = await channel.export_invite_link()
-        if lang['lang'] == 'uz':
-            bot_msg = await db.select_bot_message(code='select_lang_8')
+        bot_msg = await db.select_bot_message(code='select_lang_4')
+        await call.answer(bot_msg['content'])
+        if bot_info[0]['contest'] == True:
+            bot_msg = await db.select_bot_message(code='select_lang_5')
             await call.message.answer(bot_msg['content'])
-            bot_msg = await db.select_bot_message(code='select_lang_9')
-            await call.message.answer(bot_msg['content'].format(channel_username=channel.username, channel_title=channel.title, invite_link=invite_link), disable_web_page_preview=True,
-                reply_markup=chek_uz)
+
+            bot_msg = await db.select_bot_message(code='select_lang_6')
+            await call.message.answer(bot_msg['content'],
+                                        reply_markup=contact_ru)
+            await UserInfo.phone.set()
+
         else:
-            bot_msg = await db.select_bot_message(code='select_lang_10')
+            bot_msg = await db.select_bot_message(code='select_lang_7')
             await call.message.answer(bot_msg['content'])
-            bot_msg = await db.select_bot_message(code='select_lang_11')
-            await call.message.answer(bot_msg['content'].format(channel_username=channel.username, channel_title=channel.title, invite_link=invite_link), disable_web_page_preview=True,
-                reply_markup=chek)
-        await Chek.chek.set()
+            await state.finish()
 
 
 @dp.message_handler(content_types=['contact'], state=UserInfo.phone)

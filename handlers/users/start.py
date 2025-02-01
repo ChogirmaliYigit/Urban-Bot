@@ -28,9 +28,9 @@ async def bot_start(message: types.Message, state: FSMContext):
             name2='ADMIN',
             ban=True
         )
-        await message.answer(bot_msg['content'], reply_markup=admin_key)
     except asyncpg.exceptions.UniqueViolationError:
-        await message.answer(bot_msg['content'], reply_markup=admin_key)
+        pass
+    await message.answer(bot_msg['content'], reply_markup=admin_key)
     await state.finish()
 
 
@@ -42,7 +42,7 @@ async def bot_start(message: types.Message, state: FSMContext):
     if bot_info[0]['contest'] == True:
 
         channel_name = await bot.get_chat(CHANNELS[0])
-        channelname = (channel_name.active_usernames)
+        channelname = channel_name.active_usernames
         user_channel_status = await bot.get_chat_member(chat_id=f'@{channelname[0]}',
                                                         user_id=message.from_user.id)
 

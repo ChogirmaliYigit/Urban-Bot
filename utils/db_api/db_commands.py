@@ -85,6 +85,10 @@ class Database:
         sql = "UPDATE main_user SET ref_count = ref_count + 1 WHERE id=$1"
         return await self.execute(sql, tg_id, execute=True)
 
+    async def add_channel(self, chat_id, name, link):
+        sql = "INSERT INTO main_channel (chat_id, name, link) VALUES($1, $2, $3) returning *"
+        return await self.execute(sql, chat_id, name, link, execute=True)
+
     async def update_lang(self, lang, telegram_id):
         sql = "UPDATE main_user SET lang=$1 WHERE id=$2"
         return await self.execute(sql, lang, telegram_id, execute=True)
@@ -105,11 +109,20 @@ class Database:
         sql = "SELECT * FROM main_token"
         return await self.execute(sql, fetch=True)
 
+    async def select_all_channels(self):
+        sql = "SELECT * FROM main_channel"
+        return await self.execute(sql, fetch=True)
+
+    async def select_channel(self, **kwargs):
+        sql = "SELECT * FROM main_channel WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
     async def select_user(self, **kwargs):
         sql = "SELECT * FROM main_user WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
-    
+
     async def select_bot_message(self, **kwargs):
         sql = "SELECT * FROM main_botmessage WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
@@ -141,3 +154,6 @@ class Database:
 
     async def drop_users(self):
         await self.execute("DROP TABLE main_user", execute=True)
+
+    async def delete_channel(self, channel_id):
+        await self.execute("DELETE FROM main_channel WHERE id=$1", channel_id, execute=True)

@@ -3,8 +3,9 @@ from aiogram import types
 from aiogram.dispatcher.handler import CancelHandler
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from data.config import CHANNELS
-from utils.misc import subscription
-from loader import bot
+from keyboards.inline.menu_in import get_channels_markup_user
+from loader import db
+from utils.misc.subscription import get_user_subscribe_channels
 
 
 class BigBrother(BaseMiddleware):
@@ -19,18 +20,20 @@ class BigBrother(BaseMiddleware):
                 return
         else:
             return
-        logging.info(user)
-        result = str()
-        final_status = True
-        for channel in CHANNELS:
-            status = await subscription.check(user_id=user,
-                                              channel=channel)
-            final_status *= status
-            channel = await bot.get_chat(channel)
-            if not status:
-                invite_link = await channel.export_invite_link()
-                result += (f"❌ <a href='{invite_link}'><b>{channel.title}</b></a>\n")
 
-        if not final_status:
-            await update.message.answer(result, disable_web_page_preview=True)
+        logging.info(user)
+        lang = await db.show_lang(id=user)
+
+        channels = await db.select_all_channels()
+        channel_ids = {int(CHANNELS[0])}
+        for channel in channels:
+            channel_ids.add(int(channel["chat_id"]))
+
+        subscribe_channels = await get_user_subscribe_channels(channel_ids, user)
+        if subscribe_channels:
+            bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang['lang'] if lang else 'ru'}")
+            await update.message.answer(
+                text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
+                reply_markup=get_channels_markup_user(subscribe_channels)
+            )
             raise CancelHandler()

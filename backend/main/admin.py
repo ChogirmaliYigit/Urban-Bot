@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, AdminsTG, Token, BotMessage
+from .models import User, AdminsTG, Token, BotMessage, Channel
 
 
 class UserList(admin.ModelAdmin):
@@ -31,3 +31,9 @@ class BotMessageList(admin.ModelAdmin):
 
 
 admin.site.register(BotMessage, BotMessageList)
+
+
+@admin.register(Channel)
+class ChannelAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "chat_id", "link")
+    search_fields = list_display

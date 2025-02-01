@@ -31,7 +31,8 @@ admin_key = ReplyKeyboardMarkup(
         [KeyboardButton(text='🎉 День рождения!'), KeyboardButton(text='📊 Статистика')],
         [KeyboardButton(text='✉ Реклама'), KeyboardButton(text='📨 Пересылка сообщения')],
         [KeyboardButton(text='📇 Excel'), KeyboardButton(text='🔂 Рестарт')],
-        [KeyboardButton(text='⬇️Загрузить'),KeyboardButton(text='SQLite')]
+        [KeyboardButton(text='⬇️Загрузить'),KeyboardButton(text='SQLite')],
+        [KeyboardButton(text='Каналы')],
     ],
     resize_keyboard=True,
 )

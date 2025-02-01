@@ -26,3 +26,8 @@ class Chek(StatesGroup):
 
 class Start(StatesGroup):
     start = State()
+
+
+class Channel(StatesGroup):
+    list = State()
+    add = State()

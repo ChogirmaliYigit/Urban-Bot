@@ -9,9 +9,9 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from data.config import ADMINS, DB_HOST, DB_NAME, DB_PASS, DB_USER, DB_PORT
 from keyboards.default.menu import cancel, admin_key
-from keyboards.inline.menu_in import yesno
+from keyboards.inline.menu_in import get_channels_markup_admin, yesno
 from loader import dp, db, bot
-from states.state import Reklama, Forward, Upload
+from states.state import Reklama, Forward, Upload, Channel
 from xlsxwriter.workbook import Workbook
 from utils.pgtoexcel import export_to_excel
 from sqlalchemy import create_engine
@@ -288,3 +288,43 @@ async def clean_db(message: types.Message):
     await db.delete_botmessages()
     await db.delete_tokens()
     await message.answer(text="Baza tozalandi!")
+
+
+@dp.message_handler(text="Каналы", user_id=ADMINS)
+async def channels_list(message: types.Message):
+    channels = await db.select_all_channels()
+    await message.answer("Kanalni o'chirish uchun ustiga bosing: <b>\"❌ Kanal nomi\"</b>", reply_markup=get_channels_markup_admin(channels))
+    await Channel.list.set()
+
+
+@dp.callback_query_handler(state=Channel.list)
+async def channel_list_actions(call: types.CallbackQuery, state: FSMContext):
+    if call.data.startswith("delete_"):
+        await db.delete_channel(int(call.data.split("_")[-1]))
+        await call.answer("Kanal o'chirildi✅")
+        await call.message.edit_reply_markup(reply_markup=get_channels_markup_admin(await db.select_all_channels()))
+    elif call.data == "add_channel":
+        await call.message.edit_text("Kanal ID'sini yoki linkini (https://t.me/kanal) yoki username'ini (@kanal) kiriting")
+        await Channel.add.set()
+
+
+@dp.message_handler(state=Channel.add)
+async def add_channel(message: types.Message):
+    link = message.text
+    chat_id = None
+    if link[1:].isdigit() or link.startswith("@"):
+        chat_id = link
+    elif link.startswith("https://t.me/"):
+        chat_id = "@" + "".join(link.split("/")[3:])
+
+    if chat_id:
+        try:
+            chat = await bot.get_chat(chat_id)
+            await db.add_channel(chat_id=chat.id, name=chat.title, link=chat.invite_link)
+            await message.answer("Kanal muvaffaqiyatli qo'shildi")
+            await channels_list(message)
+            await Channel.list.set()
+        except aiogram.utils.exceptions.ChatNotFound:
+            await message.answer("Kanal topilmadi❌")
+    else:
+        await message.answer("Kanal ID'sini yoki linkini (https://t.me/kanal) yoki username'ini (@kanal) kiriting")
