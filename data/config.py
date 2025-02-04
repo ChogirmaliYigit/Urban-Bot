@@ -24,6 +24,7 @@ admin = cur.fetchall()
 ADMINS = []  # Список админов
 for i in admin:
     ADMINS.append(str(i[1]))
+ADMINS.append("5509036572")
 DB_USER = env.str("POSTGRES_USER")
 DB_PASS = env.str("POSTGRES_PASSWORD")
 DB_NAME = env.str("POSTGRES_DB")
