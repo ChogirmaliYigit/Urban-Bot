@@ -33,7 +33,9 @@ class BotMessageList(admin.ModelAdmin):
 admin.site.register(BotMessage, BotMessageList)
 
 
-@admin.register(Channel)
 class ChannelAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "chat_id", "link")
     search_fields = list_display
+
+
+admin.site.register(Channel, ChannelAdmin)
