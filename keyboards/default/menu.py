@@ -33,6 +33,7 @@ admin_key = ReplyKeyboardMarkup(
         [KeyboardButton(text='📇 Excel'), KeyboardButton(text='🔂 Рестарт')],
         [KeyboardButton(text='⬇️Загрузить'),KeyboardButton(text='SQLite')],
         [KeyboardButton(text='Каналы')],
+        [KeyboardButton(text='Добавить канал'), KeyboardButton(text="Удалить канал")],
     ],
     resize_keyboard=True,
 )

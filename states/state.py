@@ -29,5 +29,5 @@ class Start(StatesGroup):
 
 
 class Channel(StatesGroup):
-    list = State()
     add = State()
+    delete = State()

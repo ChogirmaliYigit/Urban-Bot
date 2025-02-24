@@ -293,24 +293,24 @@ async def clean_db(message: types.Message):
 @dp.message_handler(text="Каналы", user_id=ADMINS)
 async def channels_list(message: types.Message):
     channels = await db.select_all_channels()
-    await message.answer("Kanalni o'chirish uchun ustiga bosing: <b>\"❌ Kanal nomi\"</b>", reply_markup=get_channels_markup_admin(channels))
-    await Channel.list.set()
+    await message.answer("Каналы", reply_markup=get_channels_markup_admin(channels))
 
 
-@dp.callback_query_handler(state=Channel.list)
-async def channel_list_actions(call: types.CallbackQuery, state: FSMContext):
-    if call.data.startswith("delete_"):
-        await db.delete_channel(int(call.data.split("_")[-1]))
-        await call.answer("Kanal o'chirildi✅")
-        await call.message.edit_reply_markup(reply_markup=get_channels_markup_admin(await db.select_all_channels()))
-    elif call.data == "add_channel":
-        await call.message.edit_text("Kanal ID'sini yoki linkini (https://t.me/kanal) yoki username'ini (@kanal) kiriting")
-        await Channel.add.set()
+@dp.message_handler(text="Добавить канал", user_id=ADMINS)
+async def add_a_channel(message: types.Message):
+    await message.edit_text("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
+    await Channel.add.set()
 
 
 @dp.message_handler(state=Channel.add)
-async def add_channel(message: types.Message):
+async def add_channel(message: types.Message, state: FSMContext):
     link = message.text
+    if link == "/cancel":
+        await message.answer("Отменено")
+        await channels_list(message)
+        await state.finish()
+        return
+
     chat_id = None
     if link[1:].isdigit() or link.startswith("@"):
         chat_id = link
@@ -321,10 +321,26 @@ async def add_channel(message: types.Message):
         try:
             chat = await bot.get_chat(chat_id)
             await db.add_channel(chat_id=chat.id, name=chat.title, link=chat.invite_link)
-            await message.answer("Kanal muvaffaqiyatli qo'shildi")
+            await message.answer("Канал успешно добавлен")
             await channels_list(message)
             await Channel.list.set()
         except aiogram.utils.exceptions.ChatNotFound:
-            await message.answer("Kanal topilmadi❌")
+            await message.answer("Канал не найден❌")
     else:
-        await message.answer("Kanal ID'sini yoki linkini (https://t.me/kanal) yoki username'ini (@kanal) kiriting")
+        await message.answer("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
+
+
+@dp.message_handler(text="Удалить канал", user_id=ADMINS)
+async def delete_channel(message: types.Message):
+    channels = await db.select_all_channels()
+    await message.answer("Выберите канал для удаления", reply_markup=get_channels_markup_admin(channels, for_delete=True))
+    await Channel.delete.set()
+
+
+@dp.callback_query_handler(lambda call: call.data.startswith("delete_"), state=Channel.delete)
+async def delete_channel(call: types.CallbackQuery, state: FSMContext):
+    channel_id = int(call.data.split("_")[1])
+    await db.delete_channel(channel_id)
+    await call.message.edit_text("Канал удален")
+    await channels_list(call.message)
+    await state.finish()

@@ -20,15 +20,17 @@ check_button_ru = InlineKeyboardMarkup(
 )
 
 
-def get_channels_markup_admin(channels: list):
+def get_channels_markup_admin(channels: list, for_delete: bool = False):
     inline_keyboard = []
     for channel in channels:
-        inline_keyboard.append([
-            InlineKeyboardButton(text=f"❌ {channel['name']}", callback_data=f"delete_{channel['id']}")
-        ])
-    inline_keyboard.append([
-        InlineKeyboardButton(text="Kanal qo'shish", callback_data="add_channel"),
-    ])
+        if for_delete:
+            inline_keyboard.append([
+                InlineKeyboardButton(text=f"❌ {channel['name']}", callback_data=f"delete_{channel['id']}")
+            ])
+        else:
+            inline_keyboard.append([
+                InlineKeyboardButton(text=f"{channel['name']}", callback_data=f"channel_{channel['id']}")
+            ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)
 
 
