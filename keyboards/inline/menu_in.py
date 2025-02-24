@@ -30,7 +30,7 @@ async def get_channels_markup_admin(channels: list, for_delete: bool = False):
                 InlineKeyboardButton(text=f"❌ {channel['name']}", callback_data=f"delete_{channel['id']}")
             ])
         else:
-            url = get_channel_subs_link(channel)
+            url = await get_channel_subs_link(channel)
             if url:
                 inline_keyboard.append([
                     InlineKeyboardButton(text=f"{channel['name']}", url=url)
@@ -42,10 +42,10 @@ async def get_channels_markup_admin(channels: list, for_delete: bool = False):
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)
 
 
-def get_channels_markup_user(channels: list):
+async def get_channels_markup_user(channels: list):
     inline_keyboard = []
     for channel in channels:
         inline_keyboard.append([
-            InlineKeyboardButton(text=channel['name'], url=get_channel_subs_link(channel))
+            InlineKeyboardButton(text=channel['name'], url=await get_channel_subs_link(channel))
         ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)

@@ -20,7 +20,7 @@ async def checker(call: types.CallbackQuery):
         bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang1['lang'] if lang1 else 'ru'}")
         await call.message.answer(
             text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
-            reply_markup=get_channels_markup_user(subscribe_channels)
+            reply_markup=await get_channels_markup_user(subscribe_channels)
         )
         return
 

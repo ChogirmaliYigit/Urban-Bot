@@ -29,7 +29,7 @@ async def select_lang(call: types.CallbackQuery, state: FSMContext):
         bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang['lang'] if lang else 'ru'}")
         await call.message.answer(
             text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
-            reply_markup=get_channels_markup_user(subscribe_channels)
+            reply_markup=await get_channels_markup_user(subscribe_channels)
         )
         return
 
