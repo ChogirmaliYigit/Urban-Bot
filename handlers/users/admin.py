@@ -321,8 +321,11 @@ async def add_channel(message: types.Message, state: FSMContext):
     if chat_id:
         try:
             chat = await bot.get_chat(chat_id)
-            member = await bot.get_chat_member(chat_id=chat_id, user_id=message.bot.id)
-            if member.status not in ["creator", "administrator"]:
+            try:
+                member = await bot.get_chat_member(chat_id=chat_id, user_id=message.bot.id)
+            except aiogram.utils.exceptions.BadRequest:
+                member = None
+            if not member or member.status not in ["creator", "administrator"]:
                 await message.answer("Бот не является администратором на этом канале")
                 return
             await db.add_channel(chat_id=chat.id, name=chat.title, link=str(link) or chat.invite_link)
