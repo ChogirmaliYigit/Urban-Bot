@@ -7,9 +7,11 @@ from aiogram.utils.deep_linking import get_start_link, decode_payload
 from data.config import ADMINS, CHANNELS
 from keyboards.default.menu import admin_key, contact_uz, contact_ru
 from keyboards.inline.menu import lang, chek, chek_uz
+from keyboards.inline.menu_in import get_channels_markup_user
 from loader import db, bot
 from loader import dp
 from states.state import Lang, Chek, UserInfo
+from utils.misc.subscription import get_user_subscribe_channels
 
 
 @dp.message_handler(CommandStart(), user_id=ADMINS)
@@ -40,11 +42,19 @@ async def bot_start(message: types.Message, state: FSMContext):
     lang_db = await db.show_lang(id=message.from_user.id)
 
     if bot_info[0]['contest'] == True:
+        channels = await db.select_all_channels()
+        channel_ids = {int(CHANNELS[0])}
+        for channel in channels:
+            channel_ids.add(int(channel["chat_id"]))
 
-        channel_name = await bot.get_chat(CHANNELS[0])
-        channelname = channel_name.active_usernames
-        user_channel_status = await bot.get_chat_member(chat_id=f'@{channelname[0]}',
-                                                        user_id=message.from_user.id)
+        subscribe_channels = await get_user_subscribe_channels(channel_ids, message.from_user.id)
+        if subscribe_channels:
+            bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang_db['lang'] if lang_db else 'ru'}")
+            await message.answer(
+                text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
+                reply_markup=get_channels_markup_user(subscribe_channels)
+            )
+            return
 
         user_where = await db.select_user(id=message.from_user.id)
         args = message.get_args()
@@ -97,49 +107,36 @@ async def bot_start(message: types.Message, state: FSMContext):
                     await message.answer(bot_msg['content'], reply_markup=lang)
                     await Lang.select.set()
                 else:
-                    if user_channel_status["status"] != 'left':
-                        if lang_db['lang'] == 'uz' and lang_db['ban'] != False:
-                            link = await get_start_link(str(message.from_user.id), encode=True)
-                            bot_msg = await db.select_bot_message(code='bot_start_2')
-                            ref = bot_msg['content'].format(link=link)
-                            menu_uz = InlineKeyboardMarkup(
-                                inline_keyboard=[
-                                    [InlineKeyboardButton(text='Referallar', callback_data='Referallar')],
-                                    [InlineKeyboardButton(text="🫂 Do'stlaringizni taklif qiling",
-                                                          url=f"https://telegram.me/share/url?url={ref}")]
-                                ]
-                            )
-                            bot_msg = await db.select_bot_message(code='bot_start_3')
-                            await message.answer(bot_msg['content'].format(full_name=message.from_user.full_name, competition_id=lang_db["competition_id"]), reply_markup=menu_uz)
-                        elif lang_db['lang'] == 'ru' and lang_db['ban'] != False:
-                            link = await get_start_link(str(message.from_user.id), encode=True)
-                            bot_msg = await db.select_bot_message(code='bot_start_4')
-                            ref = bot_msg['content'].format(link=link)
-                            menu_ru = InlineKeyboardMarkup(
-                                inline_keyboard=[
-                                    [InlineKeyboardButton(text='Рефералы', callback_data='Рефералы')],
-                                    [InlineKeyboardButton(text="🫂 Пригласить друзей",
-                                                          url=f"https://telegram.me/share/url?url={ref}")
-                                     ]
+                    if lang_db['lang'] == 'uz' and lang_db['ban'] != False:
+                        link = await get_start_link(str(message.from_user.id), encode=True)
+                        bot_msg = await db.select_bot_message(code='bot_start_2')
+                        ref = bot_msg['content'].format(link=link)
+                        menu_uz = InlineKeyboardMarkup(
+                            inline_keyboard=[
+                                [InlineKeyboardButton(text='Referallar', callback_data='Referallar')],
+                                [InlineKeyboardButton(text="🫂 Do'stlaringizni taklif qiling",
+                                                        url=f"https://telegram.me/share/url?url={ref}")]
+                            ]
+                        )
+                        bot_msg = await db.select_bot_message(code='bot_start_3')
+                        await message.answer(bot_msg['content'].format(full_name=message.from_user.full_name, competition_id=lang_db["competition_id"]), reply_markup=menu_uz)
+                    elif lang_db['lang'] == 'ru' and lang_db['ban'] != False:
+                        link = await get_start_link(str(message.from_user.id), encode=True)
+                        bot_msg = await db.select_bot_message(code='bot_start_4')
+                        ref = bot_msg['content'].format(link=link)
+                        menu_ru = InlineKeyboardMarkup(
+                            inline_keyboard=[
+                                [InlineKeyboardButton(text='Рефералы', callback_data='Рефералы')],
+                                [InlineKeyboardButton(text="🫂 Пригласить друзей",
+                                                        url=f"https://telegram.me/share/url?url={ref}")
+                                    ]
 
-                                ],
-                                resize_keyboard=True,
-                                one_time_keyboard=True
-                            )
-                            bot_msg = await db.select_bot_message(code='bot_start_5')
-                            await message.answer(bot_msg['content'].format(full_name=message.from_user.full_name, competition_id=lang_db["competition_id"]), reply_markup=menu_ru)
-                    else:
-                        channel = await bot.get_chat(CHANNELS[0])
-                        invite_link = await channel.export_invite_link()
-                        if lang_db['lang'] == 'uz':
-                            bot_msg = await db.select_bot_message(code='bot_start_6')
-                            await message.answer(bot_msg['content'].format(invite_link=invite_link, channel_username=channel.username, channel_title=channel.title), reply_markup=chek_uz,
-                                disable_web_page_preview=True)
-                        else:
-                            bot_msg = await db.select_bot_message(code='bot_start_7')
-                            await message.answer(bot_msg['content'].format(invite_link=invite_link, channel_username=channel.username, channel_title=channel.title), reply_markup=chek,
-                                disable_web_page_preview=True)
-                        await Chek.chek.set()
+                            ],
+                            resize_keyboard=True,
+                            one_time_keyboard=True
+                        )
+                        bot_msg = await db.select_bot_message(code='bot_start_5')
+                        await message.answer(bot_msg['content'].format(full_name=message.from_user.full_name, competition_id=lang_db["competition_id"]), reply_markup=menu_ru)
             else:
                 bot_msg = await db.select_bot_message(code='bot_start_8')
                 await message.answer(bot_msg['content'])
@@ -160,64 +157,62 @@ async def bot_start(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(text='chekker', state=Chek.chek)
 async def chek_1(call: types.CallbackQuery, state: FSMContext):
     await call.message.delete()
-    channel_name = await bot.get_chat(CHANNELS[0])
-    channelname = (channel_name.active_usernames)
     lang1 = await db.show_lang(id=call.from_user.id)
-    user_channel_status = await bot.get_chat_member(chat_id=f'@{channelname[0]}', user_id=call.from_user.id)
-    if user_channel_status["status"] != 'left':
-        if call.from_user.id == lang1['id'] and lang1['birth_day'] != None:
-            if lang1['lang'] == 'uz' and lang1['ban'] != False:
-                link = await get_start_link(str(call.from_user.id), encode=True)
-                bot_msg = await db.select_bot_message(code='chek_1')
-                ref = bot_msg['content'].format(link=link)
-                menu_uz = InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [InlineKeyboardButton(text='Referallar', callback_data='Referallar')],
-                        [InlineKeyboardButton(text="🫂 Do'stlaringizni taklif qiling",
-                                              url=f"https://telegram.me/share/url?url={ref}")]
-                    ]
-                )
-                bot_msg = await db.select_bot_message(code='chek_1_1')
-                await call.message.answer(bot_msg['content'].format(full_name=call.from_user.full_name, competition_id=lang1["competition_id"]), reply_markup=menu_uz)
-            elif lang1['lang'] == 'ru' and lang1['ban'] != False:
-                link = await get_start_link(str(call.from_user.id), encode=True)
-                bot_msg = await db.select_bot_message(code='chek_1_2')
-                ref = bot_msg['content'].format(link=link)
-                menu_ru = InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [InlineKeyboardButton(text='Рефералы', callback_data='Рефералы')],
-                        [InlineKeyboardButton(text="🫂 Пригласить друзей",
-                                              url=f"https://telegram.me/share/url?url={ref}")
-                         ]
+    channels = await db.select_all_channels()
+    channel_ids = {int(CHANNELS[0])}
+    for channel in channels:
+        channel_ids.add(int(channel["chat_id"]))
 
-                    ],
-                    resize_keyboard=True,
-                    one_time_keyboard=True
-                )
-                bot_msg = await db.select_bot_message(code='chek_1_3')
-                await call.message.answer(bot_msg['content'].format(full_name=call.from_user.full_name, competition_id=lang1["competition_id"]), reply_markup=menu_ru)
-        else:
+    subscribe_channels = await get_user_subscribe_channels(channel_ids, call.from_user.id)
+    if subscribe_channels:
+        bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang1['lang'] if lang1 else 'ru'}")
+        await call.message.answer(
+            text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
+            reply_markup=get_channels_markup_user(subscribe_channels)
+        )
+        return
 
-            if lang1['lang'] == 'uz':
-                bot_msg = await db.select_bot_message(code='chek_1_4')
-                await call.message.answer(bot_msg['content'],
-                    reply_markup=contact_uz)
+    if call.from_user.id == lang1['id'] and lang1['birth_day'] != None:
+        if lang1['lang'] == 'uz' and lang1['ban'] != False:
+            link = await get_start_link(str(call.from_user.id), encode=True)
+            bot_msg = await db.select_bot_message(code='chek_1')
+            ref = bot_msg['content'].format(link=link)
+            menu_uz = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text='Referallar', callback_data='Referallar')],
+                    [InlineKeyboardButton(text="🫂 Do'stlaringizni taklif qiling",
+                                            url=f"https://telegram.me/share/url?url={ref}")]
+                ]
+            )
+            bot_msg = await db.select_bot_message(code='chek_1_1')
+            await call.message.answer(bot_msg['content'].format(full_name=call.from_user.full_name, competition_id=lang1["competition_id"]), reply_markup=menu_uz)
+        elif lang1['lang'] == 'ru' and lang1['ban'] != False:
+            link = await get_start_link(str(call.from_user.id), encode=True)
+            bot_msg = await db.select_bot_message(code='chek_1_2')
+            ref = bot_msg['content'].format(link=link)
+            menu_ru = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text='Рефералы', callback_data='Рефералы')],
+                    [InlineKeyboardButton(text="🫂 Пригласить друзей",
+                                            url=f"https://telegram.me/share/url?url={ref}")
+                        ]
 
-            else:
-                bot_msg = await db.select_bot_message(code='chek_1_5')
-                await call.message.answer(bot_msg['content'],
-                                          reply_markup=contact_ru)
-
-            await UserInfo.phone.set()
+                ],
+                resize_keyboard=True,
+                one_time_keyboard=True
+            )
+            bot_msg = await db.select_bot_message(code='chek_1_3')
+            await call.message.answer(bot_msg['content'].format(full_name=call.from_user.full_name, competition_id=lang1["competition_id"]), reply_markup=menu_ru)
     else:
-        channel = await bot.get_chat(CHANNELS[0])
-        invite_link = await channel.export_invite_link()
+
         if lang1['lang'] == 'uz':
-            bot_msg = await db.select_bot_message(code='chek_1_6')
-            await call.message.answer(bot_msg['content'].format(invite_link=invite_link, channel_username=channel.username, channel_title=channel.title), reply_markup=chek_uz,
-                disable_web_page_preview=True)
+            bot_msg = await db.select_bot_message(code='chek_1_4')
+            await call.message.answer(bot_msg['content'],
+                reply_markup=contact_uz)
+
         else:
-            bot_msg = await db.select_bot_message(code='chek_1_7')
-            await call.message.answer(bot_msg['content'].format(invite_link=invite_link, channel_username=channel.username, channel_title=channel.title), reply_markup=chek,
-                disable_web_page_preview=True)
-        await Chek.chek.set()
+            bot_msg = await db.select_bot_message(code='chek_1_5')
+            await call.message.answer(bot_msg['content'],
+                                        reply_markup=contact_ru)
+
+        await UserInfo.phone.set()
