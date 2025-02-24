@@ -321,7 +321,7 @@ async def add_channel(message: types.Message, state: FSMContext):
     if chat_id:
         try:
             chat = await bot.get_chat(chat_id)
-            await db.add_channel(chat_id=chat.id, name=chat.title, link=chat.invite_link)
+            await db.add_channel(chat_id=chat.id, name=chat.title, link=str(link) or chat.invite_link)
             await message.answer("Канал успешно добавлен")
             await channels_list(message)
             await Channel.list.set()
