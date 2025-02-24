@@ -17,6 +17,7 @@ class BigBrother(BaseMiddleware):
         elif update.callback_query:
             user = update.callback_query.from_user.id
             if update.callback_query.data in ['check_subs', ]:
+                print("check_subs callback query handled")
                 return
         else:
             return
