@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from loader import bot
 
 yesno = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -20,7 +21,7 @@ check_button_ru = InlineKeyboardMarkup(
 )
 
 
-def get_channels_markup_admin(channels: list, for_delete: bool = False):
+async def get_channels_markup_admin(channels: list, for_delete: bool = False):
     inline_keyboard = []
     for channel in channels:
         if for_delete:
@@ -28,9 +29,21 @@ def get_channels_markup_admin(channels: list, for_delete: bool = False):
                 InlineKeyboardButton(text=f"❌ {channel['name']}", callback_data=f"delete_{channel['id']}")
             ])
         else:
-            inline_keyboard.append([
-                InlineKeyboardButton(text=f"{channel['name']}", url=str(channel["link"]))
-            ])
+            link = str(channel["link"])
+            url = None
+            if link.startswith("@"):
+                url = "https://t.me/" + link[1:]
+            elif link[1:].isdigit():
+                chat = await bot.get_chat(link)
+                url = "https://t.me/" + chat.active_usernames[0]
+            if url:
+                inline_keyboard.append([
+                    InlineKeyboardButton(text=f"{channel['name']}", url=url)
+                ])
+            else:
+                inline_keyboard.append([
+                    InlineKeyboardButton(text=f"{channel['name']}", callback_data=f"channel_{channel['id']}")
+                ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)
 
 
