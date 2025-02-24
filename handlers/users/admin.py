@@ -340,7 +340,24 @@ async def delete_channel(message: types.Message):
 @dp.callback_query_handler(lambda call: call.data.startswith("delete_"), state=Channel.delete)
 async def delete_channel(call: types.CallbackQuery, state: FSMContext):
     channel_id = int(call.data.split("_")[1])
-    await db.delete_channel(channel_id)
-    await call.message.edit_text("Канал удален")
+    channel = await db.select_channel(id=channel_id)
+    if not channel:
+        await call.message.answer("Канал не найден❌")
+        await state.finish()
+        return
+
+    await state.update_data({"channel_id_to_delete": channel_id})
+    await call.message.edit_text(f"{channel.get('name')} - Вы уверены, что хотите удалить этот канал?", reply_markup=yesno)
+
+
+@dp.callback_query_handler(state=Channel.delete_confirm)
+async def delete_channel_confirmation(call: types.CallbackQuery, state: FSMContext):
+    if call.data == "yes":
+        data = await state.get_data()
+        channel_id = data.get("channel_id_to_delete")
+        await db.delete_channel(channel_id=channel_id)
+        await call.message.edit_text("Канал успешно удален")
+    else:
+        await call.message.edit_text("Отменено")
     await channels_list(call.message)
     await state.finish()

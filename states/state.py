@@ -31,3 +31,4 @@ class Start(StatesGroup):
 class Channel(StatesGroup):
     add = State()
     delete = State()
+    delete_confirm = State()
