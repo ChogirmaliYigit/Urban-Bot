@@ -29,7 +29,7 @@ def get_channels_markup_admin(channels: list, for_delete: bool = False):
             ])
         else:
             inline_keyboard.append([
-                InlineKeyboardButton(text=f"{channel['name']}", callback_data=f"channel_{channel['id']}")
+                InlineKeyboardButton(text=f"{channel['name']}", url=str(channel["link"]))
             ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)
 
