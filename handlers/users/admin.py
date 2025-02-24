@@ -293,7 +293,7 @@ async def clean_db(message: types.Message):
 @dp.message_handler(text="Каналы", user_id=ADMINS, state="*")
 async def channels_list(message: types.Message):
     channels = await db.select_all_channels()
-    await message.answer("Каналы", reply_markup=get_channels_markup_admin(channels))
+    await message.answer("Каналы", reply_markup=await get_channels_markup_admin(channels))
 
 
 @dp.message_handler(text="Добавить канал", user_id=ADMINS, state="*")
@@ -333,7 +333,7 @@ async def add_channel(message: types.Message, state: FSMContext):
 @dp.message_handler(text="Удалить канал", user_id=ADMINS, state="*")
 async def delete_channel(message: types.Message):
     channels = await db.select_all_channels()
-    await message.answer("Выберите канал для удаления", reply_markup=get_channels_markup_admin(channels, for_delete=True))
+    await message.answer("Выберите канал для удаления", reply_markup=await get_channels_markup_admin(channels, for_delete=True))
     await Channel.delete.set()
 
 
