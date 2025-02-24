@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from loader import bot
+from utils.misc.subscription import get_channel_subs_link
 
 yesno = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -29,13 +30,7 @@ async def get_channels_markup_admin(channels: list, for_delete: bool = False):
                 InlineKeyboardButton(text=f"❌ {channel['name']}", callback_data=f"delete_{channel['id']}")
             ])
         else:
-            link = str(channel["link"])
-            url = None
-            if link.startswith("@"):
-                url = "https://t.me/" + link[1:]
-            elif link[1:].isdigit():
-                chat = await bot.get_chat(link)
-                url = "https://t.me/" + chat.active_usernames[0]
+            url = get_channel_subs_link(channel)
             if url:
                 inline_keyboard.append([
                     InlineKeyboardButton(text=f"{channel['name']}", url=url)
@@ -51,6 +46,6 @@ def get_channels_markup_user(channels: list):
     inline_keyboard = []
     for channel in channels:
         inline_keyboard.append([
-            InlineKeyboardButton(text=channel['name'], url=channel["link"])
+            InlineKeyboardButton(text=channel['name'], url=get_channel_subs_link(channel))
         ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)

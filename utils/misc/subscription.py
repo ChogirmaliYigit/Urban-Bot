@@ -16,3 +16,20 @@ async def get_user_subscribe_channels(chat_ids, user_id):
             if channel:
                 subcribe_channels.append(channel)
     return subcribe_channels
+
+
+async def get_channel_subs_link(channel: dict) -> str | None:
+    link = str(channel["link"])
+    url = None
+    if link.startswith("@"):
+        url = "https://t.me/" + link[1:]
+    elif link[1:].isdigit():
+        chat = await bot.get_chat(link)
+        if chat.active_usernames:
+            url = "https://t.me/" + chat.active_usernames[0]
+        else:
+            invite_link = await chat.create_invite_link()
+            url = invite_link.invite_link
+    else:
+        url = link
+    return url
