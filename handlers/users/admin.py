@@ -348,6 +348,7 @@ async def delete_channel(call: types.CallbackQuery, state: FSMContext):
 
     await state.update_data({"channel_id_to_delete": channel_id})
     await call.message.edit_text(f"{channel.get('name')} - Вы уверены, что хотите удалить этот канал?", reply_markup=yesno)
+    await Channel.delete_confirm.set()
 
 
 @dp.callback_query_handler(state=Channel.delete_confirm)
