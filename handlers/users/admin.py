@@ -324,7 +324,6 @@ async def add_channel(message: types.Message, state: FSMContext):
             await db.add_channel(chat_id=chat.id, name=chat.title, link=str(link) or chat.invite_link)
             await message.answer("Канал успешно добавлен")
             await channels_list(message)
-            await Channel.list.set()
         except aiogram.utils.exceptions.ChatNotFound:
             await message.answer("Канал не найден❌")
     else:
