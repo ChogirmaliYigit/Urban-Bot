@@ -28,10 +28,4 @@ async def checker(call: types.CallbackQuery, state: FSMContext):
         return
 
     await call.message.delete()
-    print("lang1", lang1)
-    if not lang1:
-        bot_msg = await db.select_bot_message(code='checker_6')
-        await call.message.answer(bot_msg['content'].format(call=call), reply_markup=lang)
-        await Lang.select.set()
-    else:
-        await bot_start(message=call.message, state=state)
+    await bot_start(message=call.message, state=state)
