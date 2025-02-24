@@ -18,7 +18,7 @@ async def get_user_subscribe_channels(chat_ids, user_id):
     return subcribe_channels
 
 
-async def get_channel_subs_link(channel: dict) -> str | None:
+async def get_channel_subs_link(channel: dict):
     link = str(channel["link"])
     url = None
     if link.startswith("@"):
