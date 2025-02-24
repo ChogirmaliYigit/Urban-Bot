@@ -298,7 +298,7 @@ async def channels_list(message: types.Message):
 
 @dp.message_handler(text="Добавить канал", user_id=ADMINS)
 async def add_a_channel(message: types.Message):
-    await message.edit_text("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
+    await message.answer("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
     await Channel.add.set()
 
 
