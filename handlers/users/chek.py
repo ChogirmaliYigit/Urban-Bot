@@ -1,13 +1,16 @@
+from handlers.users.start import bot_start
 from keyboards.inline.menu_in import get_channels_markup_user
+from keyboards.inline.menu import lang
 from loader import dp, db
 from data.config import CHANNELS
 from states.state import Lang
 from utils.misc import subscription
 from aiogram import types
+from aiogram.dispatcher import FSMContext
 
 
 @dp.callback_query_handler(text="check_subs")
-async def checker(call: types.CallbackQuery):
+async def checker(call: types.CallbackQuery, state: FSMContext):
     lang1 = await db.show_lang(id=call.from_user.id)
     await call.answer()
     channels = await db.select_all_channels()
@@ -25,6 +28,9 @@ async def checker(call: types.CallbackQuery):
         return
 
     await call.message.delete()
-    bot_msg = await db.select_bot_message(code='checker_6')
-    await call.message.answer(bot_msg['content'].format(call=call), reply_markup=lang1)
-    await Lang.select.set()
+    if not lang1:
+        bot_msg = await db.select_bot_message(code='checker_6')
+        await call.message.answer(bot_msg['content'].format(call=call), reply_markup=lang)
+        await Lang.select.set()
+    else:
+        await bot_start(message=call.message, state=state)
