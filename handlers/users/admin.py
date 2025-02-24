@@ -307,7 +307,8 @@ async def add_channel(message: types.Message, state: FSMContext):
     link = message.text
     if link == "/cancel":
         await message.answer("Отменено")
-        await channels_list(message)
+        bot_msg = await db.select_bot_message(code='bot_start')
+        await message.answer(bot_msg['content'], reply_markup=admin_key)
         await state.finish()
         return
 
