@@ -290,13 +290,13 @@ async def clean_db(message: types.Message):
     await message.answer(text="Baza tozalandi!")
 
 
-@dp.message_handler(text="Каналы", user_id=ADMINS)
+@dp.message_handler(text="Каналы", user_id=ADMINS, state="*")
 async def channels_list(message: types.Message):
     channels = await db.select_all_channels()
     await message.answer("Каналы", reply_markup=get_channels_markup_admin(channels))
 
 
-@dp.message_handler(text="Добавить канал", user_id=ADMINS)
+@dp.message_handler(text="Добавить канал", user_id=ADMINS, state="*")
 async def add_a_channel(message: types.Message):
     await message.answer("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
     await Channel.add.set()
@@ -331,7 +331,7 @@ async def add_channel(message: types.Message, state: FSMContext):
         await message.answer("Введите идентификатор канала или ссылку (https://t.me/kanal) или имя пользователя (@kanal)\n\nДля отмены введите /cancel")
 
 
-@dp.message_handler(text="Удалить канал", user_id=ADMINS)
+@dp.message_handler(text="Удалить канал", user_id=ADMINS, state="*")
 async def delete_channel(message: types.Message):
     channels = await db.select_all_channels()
     await message.answer("Выберите канал для удаления", reply_markup=get_channels_markup_admin(channels, for_delete=True))
