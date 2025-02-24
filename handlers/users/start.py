@@ -52,7 +52,7 @@ async def bot_start(message: types.Message, state: FSMContext):
             bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang_db['lang'] if lang_db else 'ru'}")
             await message.answer(
                 text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
-                reply_markup=await get_channels_markup_user(subscribe_channels)
+                reply_markup=await get_channels_markup_user(subscribe_channels, lang_db['lang'] if lang_db else 'ru')
             )
             return
 
@@ -168,7 +168,7 @@ async def chek_1(call: types.CallbackQuery, state: FSMContext):
         bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang1['lang'] if lang1 else 'ru'}")
         await call.message.answer(
             text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
-            reply_markup=await get_channels_markup_user(subscribe_channels)
+            reply_markup=await get_channels_markup_user(subscribe_channels, lang1['lang'] if lang1 else 'ru')
         )
         return
 

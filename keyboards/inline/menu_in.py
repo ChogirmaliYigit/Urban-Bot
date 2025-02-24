@@ -42,10 +42,13 @@ async def get_channels_markup_admin(channels: list, for_delete: bool = False):
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)
 
 
-async def get_channels_markup_user(channels: list):
+async def get_channels_markup_user(channels: list, language: str = "ru"):
     inline_keyboard = []
     for channel in channels:
         inline_keyboard.append([
             InlineKeyboardButton(text=channel['name'], url=await get_channel_subs_link(channel))
         ])
+    inline_keyboard.append([
+        InlineKeyboardButton(text="✔️ Obunani tekshirish" if language == "uz" else "✔️ Проверить подписку", callback_data="check_subs")
+    ])
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, row_width=1)

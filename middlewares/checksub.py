@@ -34,6 +34,6 @@ class BigBrother(BaseMiddleware):
             bot_msg = await db.select_bot_message(code=f"subscribe_these_channels_{lang['lang'] if lang else 'ru'}")
             await update.message.answer(
                 text=bot_msg["content"] if bot_msg else "Пожалуйста, подпишитесь на эти каналы",
-                reply_markup=await get_channels_markup_user(subscribe_channels)
+                reply_markup=await get_channels_markup_user(subscribe_channels, lang['lang'] if lang else 'ru')
             )
             raise CancelHandler()
